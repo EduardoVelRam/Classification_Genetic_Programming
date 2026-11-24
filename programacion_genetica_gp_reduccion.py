@@ -741,3 +741,119 @@ def preparar_particiones(
         "indices_test": indices_test,
     }
 
+
+# ------------------------------------------------------------------
+# Programa principal: parámetros del experimento
+# ------------------------------------------------------------------
+
+if __name__ == "__main__":
+    configuracion = Configuracion(
+        poblacion=20,
+        generaciones=10,
+        elitismo=2,
+        torneo=3,
+        prob_cruce=0.8,
+        prob_mutacion=0.3,
+
+        profundidad_inicial=3,
+        profundidad_mutacion=2,
+        altura_maxima=6,
+        nodos_max_arbol=60,
+        nodos_max_individuo=300,
+
+        penalizacion_nodos=1e-4,
+
+        svm_C=10.0,
+        svm_kernel="rbf",
+        svm_gamma="scale",
+
+        # None toma una semilla del reloj de la computadora.
+        semilla=None,
+    )
+
+    # Subconjuntos estratificados para limitar el coste inicial.
+    N_TRAIN = 1000
+    N_VALID = 300
+    N_TEST = 1000
+
+    CARPETA_RESULTADOS = Path("resultados")
+    CARPETA_RESULTADOS.mkdir(parents=True, exist_ok=True)
+
+    motor = ProgramacionGeneticaMultiArbol(configuracion)
+
+    print("Semilla efectiva:", configuracion.semilla)
+
+    x, y, x_test, y_test = cargar_mnist()
+
+    datos = preparar_particiones(
+        x,
+        y,
+        x_test,
+        y_test,
+        n_train=N_TRAIN,
+        n_valid=N_VALID,
+        n_test=N_TEST,
+        semilla=configuracion.semilla,
+    )
+
+    inicio = time.perf_counter()
+
+    mejor = motor.evolucionar(
+        datos["x_train"],
+        datos["y_train"],
+        datos["x_valid"],
+        datos["y_valid"],
+    )
+
+    clasificador, resultados, predicciones = (
+        motor.evaluar_prueba(
+            datos["x_test"],
+            datos["y_test"],
+        )
+    )
+
+    motor.guardar(
+        CARPETA_RESULTADOS,
+        clasificador,
+        resultados,
+    )
+
+    np.savez_compressed(
+        CARPETA_RESULTADOS / "indices_particiones.npz",
+        train=datos["indices_train"],
+        valid=datos["indices_valid"],
+        test=datos["indices_test"],
+    )
+
+    np.savetxt(
+        CARPETA_RESULTADOS / "predicciones_test.csv",
+        np.column_stack(
+            [
+                datos["indices_test"],
+                datos["y_test"],
+                predicciones,
+            ]
+        ),
+        delimiter=",",
+        fmt="%d",
+        header="indice_mnist,y_real,y_predicha",
+        comments="",
+    )
+
+    print("\nFunciones convolucionales evolucionadas:")
+    for i, arbol in enumerate(mejor[:5], start=1):
+        print(f"f{i}(I) = {arbol}")
+    print("\nFunción GP de reducción (cinco mapas -> una imagen):")
+    print(f"R(C0,C1,C2,C3,C4) = {mejor[9]}")
+    print("\nFunciones convolucionales de la segunda etapa:")
+    for i, arbol in enumerate(mejor[5:9], start=6):
+        print(f"f{i}(I) = {arbol}")
+
+    print("\nNodos totales:", contar_nodos(mejor))
+    print("Aptitud:", mejor.fitness.values[0])
+    print(
+        "Exactitud de validación:",
+        mejor.metricas["exactitud_validacion"],
+    )
+    print("Exactitud de prueba:", resultados["exactitud_test"])
+    print("Tiempo total:", time.perf_counter() - inicio)
