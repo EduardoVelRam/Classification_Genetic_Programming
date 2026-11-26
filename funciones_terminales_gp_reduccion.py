@@ -146,3 +146,52 @@ def laplaciano_gaussiano(a, sigma):
         )
     )
 
+
+# ------------------------------------------------------------------
+# Sobel, Prewitt y Harris
+# ------------------------------------------------------------------
+
+def sobel_x(a):
+    return proteger(ndi.sobel(proteger(a), axis=1, mode="reflect"))
+
+
+def sobel_y(a):
+    return proteger(ndi.sobel(proteger(a), axis=0, mode="reflect"))
+
+
+def prewitt_x(a):
+    return proteger(ndi.prewitt(proteger(a), axis=1, mode="reflect"))
+
+
+def prewitt_y(a):
+    return proteger(ndi.prewitt(proteger(a), axis=0, mode="reflect"))
+
+
+def magnitud_gradiente(a):
+    return proteger(np.hypot(sobel_x(a), sobel_y(a)))
+
+
+def harris(a):
+    """
+    Devuelve el mapa de respuesta Harris completo.
+
+    No aplica umbralización ni supresión de no máximos.
+    """
+    a = proteger(a)
+
+    ix = ndi.gaussian_filter(
+        a, sigma=1.0, order=(0, 1), mode="reflect"
+    )
+    iy = ndi.gaussian_filter(
+        a, sigma=1.0, order=(1, 0), mode="reflect"
+    )
+
+    m11 = ndi.gaussian_filter(ix * ix, sigma=1.0, mode="reflect")
+    m22 = ndi.gaussian_filter(iy * iy, sigma=1.0, mode="reflect")
+    m12 = ndi.gaussian_filter(ix * iy, sigma=1.0, mode="reflect")
+
+    respuesta = m11 * m22 - m12**2 - 0.04 * (m11 + m22)**2
+
+    return proteger(respuesta)
+
+
