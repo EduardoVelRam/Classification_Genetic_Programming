@@ -91,3 +91,58 @@ def constante_imagen(a, valor):
     """Crea una imagen constante con las dimensiones de a."""
     return proteger(np.full_like(a, valor, dtype=np.float32))
 
+
+# ------------------------------------------------------------------
+# Filtros gaussianos y derivadas
+# ------------------------------------------------------------------
+
+def sigma_segura(sigma):
+    return float(np.clip(abs(sigma), 0.5, 3.0))
+
+
+def gaussiano(a, sigma):
+    return proteger(
+        ndi.gaussian_filter(
+            proteger(a),
+            sigma=sigma_segura(sigma),
+            mode="reflect",
+            truncate=3.0,
+        )
+    )
+
+
+def derivada_gaussiana(a, sigma, orden):
+    """
+    Ejes NumPy: (y, x).
+
+    Gx  -> (0, 1)
+    Gy  -> (1, 0)
+    Gxx -> (0, 2)
+    Gyy -> (2, 0)
+    Gxy -> (1, 1)
+    """
+    return proteger(
+        ndi.gaussian_filter(
+            proteger(a),
+            sigma=sigma_segura(sigma),
+            order=orden,
+            mode="reflect",
+            truncate=3.0,
+        )
+    )
+
+
+def laplaciano(a):
+    return proteger(ndi.laplace(proteger(a), mode="reflect"))
+
+
+def laplaciano_gaussiano(a, sigma):
+    return proteger(
+        ndi.gaussian_laplace(
+            proteger(a),
+            sigma=sigma_segura(sigma),
+            mode="reflect",
+            truncate=3.0,
+        )
+    )
+
