@@ -195,3 +195,35 @@ def harris(a):
     return proteger(respuesta)
 
 
+# ------------------------------------------------------------------
+# Morfología en escala de grises
+# ------------------------------------------------------------------
+
+def morfologia(a, operacion):
+    a = proteger(a)
+
+    dilatar = lambda x: ndi.grey_dilation(
+        x, size=(3, 3), mode="reflect"
+    )
+    erosionar = lambda x: ndi.grey_erosion(
+        x, size=(3, 3), mode="reflect"
+    )
+    abrir = lambda x: ndi.grey_opening(
+        x, size=(3, 3), mode="reflect"
+    )
+    cerrar = lambda x: ndi.grey_closing(
+        x, size=(3, 3), mode="reflect"
+    )
+
+    operaciones = {
+        "dilatacion": lambda: dilatar(a),
+        "erosion": lambda: erosionar(a),
+        "apertura": lambda: abrir(a),
+        "cierre": lambda: cerrar(a),
+        "gradiente_morfologico": lambda: dilatar(a) - erosionar(a),
+        "tophat": lambda: a - abrir(a),
+        "blackhat": lambda: cerrar(a) - a,
+    }
+
+    return proteger(operaciones[operacion]())
+
