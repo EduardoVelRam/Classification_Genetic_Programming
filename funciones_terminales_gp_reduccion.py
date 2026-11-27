@@ -309,3 +309,42 @@ TERMINALES_ESCALARES = (
     -2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 3.0
 )
 
+
+def constante_aleatoria():
+    return random.uniform(-3.0, 3.0)
+
+
+def construir_pset():
+    """
+    Entrada: imagen I.
+    Salida: imagen del mismo tamaño.
+
+    Los escalares sirven como parámetros y para crear imágenes constantes.
+    """
+    pset = gp.PrimitiveSetTyped(
+        "FUNCION_IMAGEN",
+        [IMAGEN],
+        IMAGEN,
+    )
+    pset.renameArguments(ARG0="I")
+
+    for nombre, funcion, argumentos in PRIMITIVAS:
+        pset.addPrimitive(
+            funcion,
+            argumentos,
+            IMAGEN,
+            name=nombre,
+        )
+
+    for valor in TERMINALES_ESCALARES:
+        pset.addTerminal(valor, float)
+
+    pset.addEphemeralConstant(
+        "c",
+        constante_aleatoria,
+        float,
+    )
+
+    return pset
+
+
