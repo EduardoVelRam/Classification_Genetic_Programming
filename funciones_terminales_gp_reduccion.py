@@ -227,3 +227,85 @@ def morfologia(a, operacion):
 
     return proteger(operaciones[operacion]())
 
+
+# ------------------------------------------------------------------
+# Catálogo: nombre, función, tipos de argumentos
+# ------------------------------------------------------------------
+
+PRIMITIVAS = [
+    ("suma", suma, [IMAGEN, IMAGEN]),
+    ("resta", resta, [IMAGEN, IMAGEN]),
+    ("producto", producto, [IMAGEN, IMAGEN]),
+    ("division", division, [IMAGEN, IMAGEN]),
+
+    ("log", logaritmo, [IMAGEN]),
+    ("exp", exponencial, [IMAGEN]),
+    ("sin", seno, [IMAGEN]),
+    ("cos", coseno, [IMAGEN]),
+    ("tanh", tanh, [IMAGEN]),
+    ("abs", absoluto, [IMAGEN]),
+    ("raiz", raiz, [IMAGEN]),
+    ("neg", negativo, [IMAGEN]),
+
+    ("constante", constante_imagen, [IMAGEN, float]),
+    ("gauss", gaussiano, [IMAGEN, float]),
+
+    (
+        "Gx",
+        partial(derivada_gaussiana, orden=(0, 1)),
+        [IMAGEN, float],
+    ),
+    (
+        "Gy",
+        partial(derivada_gaussiana, orden=(1, 0)),
+        [IMAGEN, float],
+    ),
+    (
+        "Gxx",
+        partial(derivada_gaussiana, orden=(0, 2)),
+        [IMAGEN, float],
+    ),
+    (
+        "Gyy",
+        partial(derivada_gaussiana, orden=(2, 0)),
+        [IMAGEN, float],
+    ),
+    (
+        "Gxy",
+        partial(derivada_gaussiana, orden=(1, 1)),
+        [IMAGEN, float],
+    ),
+
+    ("laplace", laplaciano, [IMAGEN]),
+    ("LoG", laplaciano_gaussiano, [IMAGEN, float]),
+
+    ("sobel_x", sobel_x, [IMAGEN]),
+    ("sobel_y", sobel_y, [IMAGEN]),
+    ("prewitt_x", prewitt_x, [IMAGEN]),
+    ("prewitt_y", prewitt_y, [IMAGEN]),
+    ("magnitud", magnitud_gradiente, [IMAGEN]),
+    ("harris", harris, [IMAGEN]),
+]
+
+for nombre in (
+    "dilatacion",
+    "erosion",
+    "apertura",
+    "cierre",
+    "gradiente_morfologico",
+    "tophat",
+    "blackhat",
+):
+    PRIMITIVAS.append(
+        (
+            nombre,
+            partial(morfologia, operacion=nombre),
+            [IMAGEN],
+        )
+    )
+
+
+TERMINALES_ESCALARES = (
+    -2.0, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0, 3.0
+)
+
